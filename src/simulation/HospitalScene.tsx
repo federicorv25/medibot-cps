@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as T from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import type { HospitalMap, Room, RoomKind } from '../maps/contract'
+import { buildFacade } from './facade'
 import { FLOOR_HEIGHT, pose, type Mission, type Network } from './model'
 
 export type CameraView = 'orbit' | 'top' | 'follow' | 'building'
@@ -154,7 +155,7 @@ function dispose(group: T.Object3D) {
   }
 }
 
-interface Props { net: Network; mission: Mission; view: CameraView; shownFloor: string; robotTask: string; robotCargo: string }
+interface Props { net: Network; mission: Mission; view: CameraView; shownFloor: string; robotTask: string; robotCargo: string; facade: boolean }
 export default function HospitalScene(props: Props) {
   const host = useRef<HTMLDivElement>(null)
   const marker = useRef<HTMLDivElement>(null)
@@ -185,6 +186,9 @@ export default function HospitalScene(props: Props) {
     for (const group of groups.values()) scene.add(group)
     const { group: robot, door, ring, liftPad } = buildRobot(); scene.add(robot)
     const paths = new T.Group(); scene.add(paths)
+    const shell = buildFacade(net.map, FLOOR_HEIGHT); scene.add(shell.group)
+    let facadeLevel = 0
+    let lastFrame = performance.now()
     const projected = new T.Vector3()
     const target = new T.Vector3()
     const follow = new T.Vector3()
@@ -211,12 +215,17 @@ export default function HospitalScene(props: Props) {
     }
     const resize = new ResizeObserver(measure); resize.observe(root); measure()
     const animate = () => {
-      const { mission, view, shownFloor } = latest.current
+      const { mission, view, shownFloor, facade } = latest.current
+      const now = performance.now(), dt = Math.min((now - lastFrame) / 1000, .25)
+      lastFrame = now
       const p = pose(net,mission)
       const floor = net.map.floors.find((entry) => entry.id === shownFloor) ?? net.map.floors[0]
       const elevation = floor.level * FLOOR_HEIGHT
       const all = view === 'building'
-      const separation = all ? 1.95 : 1
+      // Con la fachada puesta las plantas se juntan en un solo volumen; al ocultarla se separan para ver por dentro.
+      facadeLevel = Math.min(1, Math.max(0, facadeLevel + (all && facade ? dt : -dt) / .45))
+      const separation = all ? 1.95 - .95 * facadeLevel : 1
+      shell.layout(separation, all ? facadeLevel : 0)
       for (const [id,g] of groups) {
         g.visible = all || id === floor.id
         g.position.y = net.map.floors.find((entry) => entry.id === id)!.level * FLOOR_HEIGHT * separation
@@ -250,13 +259,18 @@ export default function HospitalScene(props: Props) {
         })
         camera.lookAt(controls.target); controls.update(); measure()
       }
+      if (all) {
+        const center = (high + low) * separation / 2 + facadeLevel * FLOOR_HEIGHT / 2
+        const shift = center - controls.target.y
+        if (Math.abs(shift) > 1e-3) { controls.target.y += shift; camera.position.y += shift }
+      }
       if (view === 'follow') {
         const [x,y,z] = p.position
         camera.position.lerp(follow.set(x + 10,y + 16,z + 13),.08)
         controls.target.lerp(target.set(x,y,z),.1)
         camera.lookAt(controls.target)
       } else if (view === 'orbit' || all) controls.update()
-      const pathView = all ? 'building:' + floor.id : floor.id
+      const pathView = all ? 'building:' + floor.id + ':' + separation.toFixed(2) : floor.id
       if (activeRoute !== mission.route || activeBlocks !== mission.blocked || activeFloor !== pathView) {
         activeRoute = mission.route; activeBlocks = mission.blocked; activeFloor = pathView
         dispose(paths); paths.clear()

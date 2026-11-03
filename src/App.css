@@ -56,6 +56,9 @@
 .segmented button[aria-pressed="true"], .floor-controls button[aria-pressed="true"] { color: #aff9e9; background: #234952; }
 .fullscreen-toggle { display: inline-flex; align-items: center; gap: 7px; background: #1e3c51; border: 1px solid #4c718a; padding: 8px 10px; color: #e0f6fb; font-size: 12px; font-weight: 720; border-radius: 8px; white-space: nowrap; }
 .fullscreen-toggle:hover { background: #2a4b60; }
+.facade-toggle { display: inline-flex; align-items: center; gap: 7px; background: #13283a; border: 1px solid #2b4055; padding: 8px 10px; color: #b5cbdc; font-size: 12px; font-weight: 720; border-radius: 8px; white-space: nowrap; }
+.facade-toggle:hover { background: #233a4d; color: #e6f5fa; }
+.facade-toggle[aria-pressed="true"] { color: #aff9e9; background: #234952; border-color: #3f7a72; }
 .map-card:fullscreen, .map-card.expanded { display: flex; flex-direction: column; width: 100%; height: 100dvh; border: 0; border-radius: 0; }
 .map-card.expanded { position: fixed; inset: 0; z-index: 20; }
 .map-card:fullscreen .map-body, .map-card.expanded .map-body { flex: 1 1 auto; min-height: 0; height: auto; }
@@ -166,7 +169,7 @@
   .map-head { align-items: flex-start; flex-wrap: wrap; padding: 9px; }
   .viewer-tools { justify-content: space-between; width: 100%; flex-wrap: wrap; }
   .segmented button { padding-inline: 5px; }
-  .fullscreen-toggle { gap: 4px; padding-inline: 6px; }
+  .fullscreen-toggle, .facade-toggle { gap: 4px; padding-inline: 6px; }
   .fullscreen-toggle span { max-width: 66px; }
   .summary-task strong, .summary-destination strong { font-size: 12px; }
   .mission-strip > div { padding: 7px 9px; } .summary-icon { flex-basis: 29px; height: 29px; }
