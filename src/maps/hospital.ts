@@ -2,18 +2,24 @@ import type { Corridor, HospitalMap, Room, RoomKind, Station, Waypoint } from '.
 
 /*
  * Mapa recreado de TAJIX para la simulación de MediBot CPS.
- * Edificio ilustrativo inspirado en un hospital de la seguridad social de Santa Cruz.
- * No es una réplica de ningún plano autorizado.
+ * Edificio ilustrativo de cinco plantas inspirado en un hospital de la seguridad
+ * social de Santa Cruz. No es una réplica de ningún plano autorizado.
  *
  * Coordenadas en metros, origen al centro de cada planta; X hacia el este, Z hacia el sur.
- * Las tres plantas comparten la misma retícula:
+ * Las cinco plantas comparten la misma retícula:
  *   z -13 … -5    franja norte de salas (puerta al sur)
  *   z  -5 … -1.5  pasillo norte (eje z = -3.2)
  *   z -1.5 … 3.5  franja central con el ascensor (x -1 … 3)
  *   z 3.5 … 7     pasillo sur (eje z = 5.2)
  *   z   7 … 13    franja sur de salas (puerta al norte)
- * Los pasos de servicio en x = ±20.5 unen ambos pasillos y cierran el anillo
- * que da dos recorridos posibles hacia cada estación.
+ * Los pasos de servicio en x = ±20.5 unen ambos pasillos y cierran un anillo,
+ * así que cada estación tiene dos recorridos posibles desde el ascensor.
+ *
+ *   Planta baja  Farmacia Central (pharmacy) y Urgencias (emergency)
+ *   Piso 1       Diagnóstico (diagnostics) y consulta externa
+ *   Piso 2       Quirófanos (surgery)
+ *   Piso 3       Cuidados intensivos (care)
+ *   Piso 4       Internación (inpatient)
  */
 
 const FLOOR_SIZE = [46, 28] as const
@@ -23,6 +29,8 @@ const WEST_LINK = -20.5
 const EAST_LINK = 20.5
 const LIFT_X = 1
 const LIFT_STOP = 2.4
+/** Profundidad del nodo de estación dentro de su sala, medida desde la puerta. */
+const STATION_Z = -6.1
 
 type Band = 'north' | 'middle-north' | 'middle-south' | 'south'
 const bands: Record<Band, { z: number; depth: number; door: Room['door'] }> = {
@@ -43,11 +51,15 @@ function node(id: string, floor: string, x: number, z: number, station?: Station
 function hall(id: string, from: string, to: string): Corridor {
   return { id, from, to, kind: 'hall' }
 }
+/** Ascensor, en la misma posición en todas las plantas. */
+function lift(floor: string): Room {
+  return room(`lift-room-${floor}`, 'Ascensor', floor, 'middle-south', -1, 3, 'lift')
+}
 
 /**
  * Nodos y tramos comunes a una planta: anillo de pasillos, pasos de servicio
- * y acceso al ascensor. `stationHall` es el punto del pasillo norte frente a la
- * estación de la planta, que divide el pasillo norte en dos tramos.
+ * y acceso al ascensor. `stationHall` es el punto del pasillo norte frente a
+ * la estación principal de la planta.
  */
 function ring(floor: string, stationHall: { id: string; x: number }) {
   const p = (name: string) => `${name}-${floor}`
@@ -70,13 +82,25 @@ function ring(floor: string, stationHall: { id: string; x: number }) {
   return { nodes, edges }
 }
 
+/** Planta superior con una estación en la franja norte, frente al pasillo norte. */
+function upperFloor(floor: string, station: Station, x: number) {
+  const plan = ring(floor, { id: `${station}-hall`, x })
+  plan.nodes.push(node(station, floor, x, STATION_Z, station))
+  plan.edges.push(
+    hall(`north-west-${floor}`, `nw-${floor}`, `${station}-hall`),
+    hall(`north-main-${floor}`, `${station}-hall`, `ne-${floor}`),
+    hall(`${station}-entry`, `${station}-hall`, station),
+  )
+  return plan
+}
+
 /* ---------- Planta baja: Farmacia y Urgencias ---------- */
 const pb = ring('pb', { id: 'pharmacy-hall', x: -13.5 })
 pb.nodes.push(
   node('pharmacy', 'pb', -13.5, -0.4, 'pharmacy'),
   node('main-hall-mid', 'pb', LIFT_X, NORTH_HALL),
   node('emergency-hall', 'pb', 16.5, NORTH_HALL),
-  node('emergency', 'pb', 16.5, -6.1, 'emergency'),
+  node('emergency', 'pb', 16.5, STATION_Z, 'emergency'),
 )
 pb.edges.push(
   hall('pharmacy-exit', 'pharmacy', 'pharmacy-hall'),
@@ -89,85 +113,105 @@ pb.edges.push(
   hall('emergency-entry', 'emergency-hall', 'emergency'),
 )
 
-/* ---------- Piso 1: Quirófanos y cuidados críticos ---------- */
-const p1 = ring('p1', { id: 'surgery-hall', x: -16 })
-p1.nodes.push(node('surgery', 'p1', -16, -6.1, 'surgery'))
-p1.edges.push(
-  hall('north-west-p1', 'nw-p1', 'surgery-hall'),
-  hall('north-main-p1', 'surgery-hall', 'ne-p1'),
-  hall('surgery-entry', 'surgery-hall', 'surgery'),
-)
+/* ---------- Plantas superiores ---------- */
+const p1 = upperFloor('p1', 'diagnostics', -15)
+const p2 = upperFloor('p2', 'surgery', -16)
+const p3 = upperFloor('p3', 'care', -15)
+const p4 = upperFloor('p4', 'inpatient', -15)
 
-/* ---------- Piso 2: Internación ---------- */
-const p2 = ring('p2', { id: 'inpatient-hall', x: -15 })
-p2.nodes.push(node('inpatient', 'p2', -15, -6.1, 'inpatient'))
-p2.edges.push(
-  hall('north-west-p2', 'nw-p2', 'inpatient-hall'),
-  hall('north-main-p2', 'inpatient-hall', 'ne-p2'),
-  hall('inpatient-entry', 'inpatient-hall', 'inpatient'),
-)
+const levels = ['pb', 'p1', 'p2', 'p3', 'p4'] as const
+const plans = [pb, p1, p2, p3, p4]
 
 const hospital: HospitalMap = {
   label: 'Mapa recreado para la simulación',
-  floors: [
-    { id: 'pb', label: 'Planta baja', level: 0, size: FLOOR_SIZE },
-    { id: 'p1', label: 'Piso 1', level: 1, size: FLOOR_SIZE },
-    { id: 'p2', label: 'Piso 2', level: 2, size: FLOOR_SIZE },
-  ],
+  floors: levels.map((id, level) => ({ id, label: level === 0 ? 'Planta baja' : `Piso ${level}`, level, size: FLOOR_SIZE })),
   rooms: [
     // Planta baja · emergencias, farmacia y admisión
-    room('lab', 'Laboratorio', 'pb', 'north', -22, -13),
-    room('imaging', 'Imagenología', 'pb', 'north', -13, -5),
+    room('lab-pb', 'Laboratorio', 'pb', 'north', -22, -13),
+    room('imaging-pb', 'Rayos X', 'pb', 'north', -13, -5),
     room('observation', 'Observación', 'pb', 'north', -5, 3),
     room('triage', 'Triaje', 'pb', 'north', 3, 11),
     room('urg', 'Urgencias', 'pb', 'north', 11, 22, 'emergency'),
     room('farm', 'Farmacia Central', 'pb', 'middle-north', -19, -8, 'pharmacy'),
     room('supply', 'Suministros', 'pb', 'middle-south', -8, -1),
-    room('lift-room-pb', 'Ascensor', 'pb', 'middle-south', -1, 3, 'lift'),
+    lift('pb'),
     room('admission', 'Admisión', 'pb', 'middle-south', 3, 11),
     room('affiliation', 'Afiliación', 'pb', 'middle-south', 11, 19),
     room('records', 'Archivo clínico', 'pb', 'south', -22, -13),
-    room('outpatient', 'Consulta externa', 'pb', 'south', -13, -3),
+    room('information', 'Informaciones', 'pb', 'south', -13, -3),
     room('vaccines', 'Vacunas', 'pb', 'south', -3, 5),
     room('social', 'Trabajo social', 'pb', 'south', 5, 13),
     room('cafeteria', 'Cafetería', 'pb', 'south', 13, 22),
 
-    // Piso 1 · quirófanos y cuidados críticos
-    room('surg', 'Quirófanos', 'p1', 'north', -22, -10, 'surgery'),
-    room('recovery', 'Recuperación', 'p1', 'north', -10, -1),
-    room('sterile', 'Esterilización', 'p1', 'north', -1, 7),
-    room('icu', 'Terapia intensiva', 'p1', 'north', 7, 15),
-    room('neonatal', 'Neonatología', 'p1', 'north', 15, 22),
-    room('scrub', 'Prelavado', 'p1', 'middle-north', -19, -8),
-    room('lockers', 'Vestuarios', 'p1', 'middle-south', -8, -1),
-    room('lift-room-p1', 'Ascensor', 'p1', 'middle-south', -1, 3, 'lift'),
+    // Piso 1 · diagnóstico y consulta externa
+    room('diag', 'Diagnóstico', 'p1', 'north', -22, -8, 'diagnostics'),
+    room('tomography', 'Tomografía', 'p1', 'north', -8, 0),
+    room('ultrasound', 'Ecografía', 'p1', 'north', 0, 8),
+    room('endoscopy', 'Endoscopía', 'p1', 'north', 8, 15),
+    room('blood-bank', 'Banco de sangre', 'p1', 'north', 15, 22),
+    room('sampling', 'Toma de muestras', 'p1', 'middle-north', -19, -8),
+    room('waiting-p1', 'Sala de espera', 'p1', 'middle-south', -8, -1),
+    lift('p1'),
     room('nursing-p1', 'Enfermería', 'p1', 'middle-south', 3, 11),
-    room('clinical-store', 'Depósito clínico', 'p1', 'middle-south', 11, 19),
-    room('intermediate', 'Terapia intermedia', 'p1', 'south', -22, -11),
-    room('family', 'Espera familiares', 'p1', 'south', -11, -2),
-    room('delivery', 'Sala de partos', 'p1', 'south', -2, 8),
-    room('dialysis', 'Hemodiálisis', 'p1', 'south', 8, 22),
+    room('reports', 'Informes', 'p1', 'middle-south', 11, 19),
+    room('offices-1', 'Consultorios 1–4', 'p1', 'south', -22, -11),
+    room('offices-5', 'Consultorios 5–8', 'p1', 'south', -11, 0),
+    room('dental', 'Odontología', 'p1', 'south', 0, 10),
+    room('physio', 'Fisioterapia', 'p1', 'south', 10, 22),
 
-    // Piso 2 · internación
-    room('patients', 'Internación', 'p2', 'north', -22, -8, 'inpatient'),
-    room('rooms-201', 'Hab. 201–204', 'p2', 'north', -8, 4),
-    room('rooms-205', 'Hab. 205–208', 'p2', 'north', 4, 14),
-    room('isolation', 'Aislamiento', 'p2', 'north', 14, 22),
-    room('doctors', 'Sala de médicos', 'p2', 'middle-north', -19, -8),
-    room('nursing-p2', 'Enfermería', 'p2', 'middle-south', -8, -1),
-    room('lift-room-p2', 'Ascensor', 'p2', 'middle-south', -1, 3, 'lift'),
-    room('linen', 'Ropería', 'p2', 'middle-south', 3, 11),
-    room('utility', 'Utilería', 'p2', 'middle-south', 11, 19),
-    room('rooms-209', 'Hab. 209–212', 'p2', 'south', -22, -10),
-    room('rooms-213', 'Hab. 213–216', 'p2', 'south', -10, 2),
-    room('pediatrics', 'Pediatría', 'p2', 'south', 2, 12),
-    room('lactation', 'Lactario', 'p2', 'south', 12, 22),
+    // Piso 2 · quirófanos
+    room('surg', 'Quirófanos', 'p2', 'north', -22, -10, 'surgery'),
+    room('recovery', 'Recuperación', 'p2', 'north', -10, -1),
+    room('sterile', 'Esterilización', 'p2', 'north', -1, 7),
+    room('delivery', 'Sala de partos', 'p2', 'north', 7, 15),
+    room('anesthesia', 'Anestesia', 'p2', 'north', 15, 22),
+    room('scrub', 'Prelavado', 'p2', 'middle-north', -19, -8),
+    room('lockers', 'Vestuarios', 'p2', 'middle-south', -8, -1),
+    lift('p2'),
+    room('nursing-p2', 'Enfermería', 'p2', 'middle-south', 3, 11),
+    room('surgical-store', 'Depósito quirúrgico', 'p2', 'middle-south', 11, 19),
+    room('pre-op', 'Preoperatorio', 'p2', 'south', -22, -11),
+    room('family-p2', 'Espera familiares', 'p2', 'south', -11, -2),
+    room('day-surgery', 'Cirugía ambulatoria', 'p2', 'south', -2, 8),
+    room('endoscopy-or', 'Sala de procedimientos', 'p2', 'south', 8, 22),
+
+    // Piso 3 · cuidados intensivos
+    room('icu', 'Cuidados intensivos', 'p3', 'north', -22, -8, 'care'),
+    room('intermediate', 'Terapia intermedia', 'p3', 'north', -8, 4),
+    room('neonatal', 'Neonatología', 'p3', 'north', 4, 14),
+    room('isolation-p3', 'Aislamiento', 'p3', 'north', 14, 22),
+    room('doctors-p3', 'Sala de médicos', 'p3', 'middle-north', -19, -8),
+    room('nursing-p3', 'Enfermería', 'p3', 'middle-south', -8, -1),
+    lift('p3'),
+    room('clinical-store', 'Depósito clínico', 'p3', 'middle-south', 3, 11),
+    room('utility-p3', 'Utilería', 'p3', 'middle-south', 11, 19),
+    room('dialysis', 'Hemodiálisis', 'p3', 'south', -22, -10),
+    room('family-p3', 'Espera familiares', 'p3', 'south', -10, 2),
+    room('rehab', 'Rehabilitación', 'p3', 'south', 2, 12),
+    room('lockers-p3', 'Vestuarios', 'p3', 'south', 12, 22),
+
+    // Piso 4 · internación
+    room('patients', 'Internación', 'p4', 'north', -22, -8, 'inpatient'),
+    room('rooms-401', 'Hab. 401–404', 'p4', 'north', -8, 4),
+    room('rooms-405', 'Hab. 405–408', 'p4', 'north', 4, 14),
+    room('isolation-p4', 'Aislamiento', 'p4', 'north', 14, 22),
+    room('doctors-p4', 'Sala de médicos', 'p4', 'middle-north', -19, -8),
+    room('nursing-p4', 'Enfermería', 'p4', 'middle-south', -8, -1),
+    lift('p4'),
+    room('linen', 'Ropería', 'p4', 'middle-south', 3, 11),
+    room('utility-p4', 'Utilería', 'p4', 'middle-south', 11, 19),
+    room('rooms-409', 'Hab. 409–412', 'p4', 'south', -22, -10),
+    room('rooms-413', 'Hab. 413–416', 'p4', 'south', -10, 2),
+    room('pediatrics', 'Pediatría', 'p4', 'south', 2, 12),
+    room('lactation', 'Lactario', 'p4', 'south', 12, 22),
   ],
-  nodes: [...pb.nodes, ...p1.nodes, ...p2.nodes],
+  nodes: plans.flatMap((plan) => plan.nodes),
   edges: [
-    ...pb.edges, ...p1.edges, ...p2.edges,
-    { id: 'lift-pb-p1', from: 'lift-pb', to: 'lift-p1', kind: 'lift' },
-    { id: 'lift-p1-p2', from: 'lift-p1', to: 'lift-p2', kind: 'lift' },
+    ...plans.flatMap((plan) => plan.edges),
+    // El ascensor une solo niveles contiguos.
+    ...levels.slice(1).map((floor, i): Corridor => ({
+      id: `lift-${levels[i]}-${floor}`, from: `lift-${levels[i]}`, to: `lift-${floor}`, kind: 'lift',
+    })),
   ],
 }
 

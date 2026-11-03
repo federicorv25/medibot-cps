@@ -47,17 +47,17 @@ function route(from: string, to: string, skip: Set<string> = new Set()) {
 const station = (name: string) => hospital.nodes.find((n) => n.station === name)!.id
 
 describe('mapa recreado del hospital', () => {
-  it('conserva el rótulo y tiene identificadores y niveles únicos', () => {
+  it('conserva el rótulo y tiene cinco plantas con identificadores y niveles únicos', () => {
     expect(hospital.label).toBe('Mapa recreado para la simulación')
     for (const list of [hospital.floors, hospital.rooms, hospital.nodes, hospital.edges]) {
       expect(new Set(list.map((item) => item.id)).size).toBe(list.length)
     }
-    expect(new Set(hospital.floors.map((f) => Math.trunc(f.level))).size).toBe(hospital.floors.length)
-    expect(hospital.floors.every((f) => Number.isInteger(f.level))).toBe(true)
+    expect(hospital.floors.map((f) => f.level).sort()).toEqual([0, 1, 2, 3, 4])
+    expect(hospital.floors.map((f) => f.label)).toEqual(['Planta baja', 'Piso 1', 'Piso 2', 'Piso 3', 'Piso 4'])
   })
 
-  it('ubica una vez cada estación, dentro de su sala', () => {
-    for (const name of ['pharmacy', 'emergency', 'surgery', 'inpatient'] as const) {
+  it('ubica una vez cada estación, dentro de su sala, con un destino por planta', () => {
+    for (const name of ['pharmacy', 'emergency', 'surgery', 'inpatient', 'diagnostics', 'care'] as const) {
       const found = hospital.nodes.filter((n) => n.station === name)
       expect(found, name).toHaveLength(1)
       const rooms = hospital.rooms.filter((r) => r.kind === name)
@@ -65,6 +65,8 @@ describe('mapa recreado del hospital', () => {
       expect(rooms[0].floor).toBe(found[0].floor)
       expect(inside(rooms[0], found[0].at)).toBe(true)
     }
+    const destinationFloors = hospital.nodes.filter((n) => n.station && n.station !== 'pharmacy').map((n) => n.floor)
+    expect(new Set(destinationFloors)).toEqual(new Set(hospital.floors.map((f) => f.id)))
   })
 
   it('mantiene salas dentro de la planta y sin superposiciones', () => {
@@ -81,13 +83,19 @@ describe('mapa recreado del hospital', () => {
     }
   })
 
-  it('alinea el ascensor y solo los tramos lift cambian de planta', () => {
+  it('alinea el ascensor y solo lo usa entre niveles contiguos', () => {
     for (const edge of hospital.edges) {
       const a = nodes.get(edge.from)!, b = nodes.get(edge.to)!
       expect(a && b, edge.id).toBeTruthy()
       expect(edge.kind === 'lift', edge.id).toBe(a.floor !== b.floor)
-      if (edge.kind === 'lift') expect(a.at).toEqual(b.at)
+      if (edge.kind === 'lift') {
+        expect(a.at).toEqual(b.at)
+        expect(Math.abs(floors.get(a.floor)!.level - floors.get(b.floor)!.level), edge.id).toBe(1)
+        const shaft = hospital.rooms.find((r) => r.kind === 'lift' && r.floor === a.floor)!
+        expect(inside(shaft, a.at), edge.id).toBe(true)
+      }
     }
+    expect(hospital.edges.filter((e) => e.kind === 'lift')).toHaveLength(hospital.floors.length - 1)
     const liftRooms = hospital.rooms.filter((r) => r.kind === 'lift')
     expect(liftRooms).toHaveLength(hospital.floors.length)
     expect(new Set(liftRooms.map((r) => r.center.join()))).toHaveProperty('size', 1)
@@ -112,18 +120,34 @@ describe('mapa recreado del hospital', () => {
     }
   })
 
-  it('conecta Farmacia con todos los destinos y ofrece dos recorridos a Urgencias', () => {
+  it('conecta Farmacia con los destinos de las cinco plantas', () => {
     const pharmacy = station('pharmacy')
-    for (const name of ['emergency', 'surgery', 'inpatient']) expect(route(pharmacy, station(name)), name).not.toBeNull()
-    const first = route(pharmacy, station('emergency'))!
-    const shared = new Set(['pharmacy-exit', 'emergency-entry'])
-    const second = route(pharmacy, station('emergency'), new Set(first.filter((id) => !shared.has(id))))
-    expect(second).not.toBeNull()
-    expect(second!.filter((id) => !shared.has(id)).some((id) => first.includes(id))).toBe(false)
+    for (const name of ['emergency', 'diagnostics', 'surgery', 'care', 'inpatient']) expect(route(pharmacy, station(name)), name).not.toBeNull()
+    const toTop = route(pharmacy, station('inpatient'))!
+    expect(toTop).toEqual(expect.arrayContaining(['lift-pb-p1', 'lift-p1-p2', 'lift-p2-p3', 'lift-p3-p4']))
   })
 
-  it('llega a otra planta a través del ascensor', () => {
-    const toInpatient = route(station('pharmacy'), station('inpatient'))!
-    expect(toInpatient).toEqual(expect.arrayContaining(['lift-pb-p1', 'lift-p1-p2']))
+  it('ofrece dos recorridos a Urgencias y se recupera al liberar el paso', () => {
+    const pharmacy = station('pharmacy'), emergency = station('emergency')
+    const first = route(pharmacy, emergency)!
+    const shared = new Set(['pharmacy-exit', 'emergency-entry'])
+    const firstOwn = first.filter((id) => !shared.has(id))
+    const second = route(pharmacy, emergency, new Set(firstOwn))
+    expect(second).not.toBeNull()
+    expect(second!.filter((id) => !shared.has(id)).some((id) => first.includes(id))).toBe(false)
+    // Un bloqueo a mitad del pasillo principal deja un desvío.
+    expect(route('main-hall-mid', emergency, new Set(['main-hall-east']))).not.toBeNull()
+    // Con ambos recorridos cortados no hay paso; al liberar, vuelve a haberlo.
+    expect(route(pharmacy, emergency, new Set(['main-hall-west', 'north-west-pb']))).toBeNull()
+    expect(route(pharmacy, emergency)).toEqual(first)
+  })
+
+  it('da dos accesos a la estación de cada planta superior desde el ascensor', () => {
+    for (const [floor, name] of [['p1', 'diagnostics'], ['p2', 'surgery'], ['p3', 'care'], ['p4', 'inpatient']] as const) {
+      const entry = `${name}-entry`
+      const first = route(`lift-${floor}`, station(name))!
+      const own = first.filter((id) => id !== entry && id !== `lift-door-${floor}`)
+      expect(route(`lift-${floor}`, station(name), new Set(own)), name).not.toBeNull()
+    }
   })
 })
