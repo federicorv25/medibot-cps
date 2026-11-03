@@ -3,7 +3,10 @@ import type { Corridor, HospitalMap, Station, Waypoint } from '../maps/contract'
 export const FLOOR_HEIGHT = 5.2
 export const DEMO_PIN = '0426'
 export type Destination = Exclude<Station, 'pharmacy'>
-export const destinations: Record<Destination, string> = { emergency: 'Urgencias', surgery: 'Quirófanos', inpatient: 'Internación' }
+export type MissionKind = 'delivery' | 'pickup'
+export const destinations: Record<Destination, string> = {
+  emergency: 'Urgencias', diagnostics: 'Diagnóstico', surgery: 'Quirófanos', care: 'Cuidados', inpatient: 'Internación',
+}
 export const catalog = [
   { id: 'paracetamol', name: 'Paracetamol', unit: 'cajas' },
   { id: 'salina', name: 'Solución salina', unit: 'bolsas' },
@@ -29,7 +32,7 @@ export function buildNetwork(map: HospitalMap) {
     }
   }
   const pharmacy = stations.get('pharmacy')
-  if (!pharmacy || !Object.keys(destinations).every((name) => stations.has(name as Station))) throw new Error('Faltan estaciones obligatorias.')
+  if (!pharmacy || !(['emergency', 'surgery', 'inpatient'] as const).every((name) => stations.has(name))) throw new Error('Faltan estaciones obligatorias.')
   const at = (id: string): XYZ => {
     const node = nodes.get(id)
     if (!node) throw new Error('Nodo desconocido: ' + id)
@@ -42,7 +45,7 @@ export function buildNetwork(map: HospitalMap) {
     if (!from || !to || from.id === to.id || (edge.kind === 'lift') !== (from.floor !== to.floor) ||
       (edge.kind === 'lift' && (from.at[0] !== to.at[0] || from.at[1] !== to.at[1]))) throw new Error('Tramo inválido: ' + edge.id)
     const distance = Math.hypot(...at(from.id).map((v, i) => v - at(to.id)[i]))
-    const duration = edge.kind === 'lift' ? 2600 : Math.max(400, distance * 235)
+    const duration = edge.kind === 'lift' ? 2400 : Math.max(600, distance * 440)
     neighbors.get(from.id)!.push({ edge, from: from.id, to: to.id, duration })
     neighbors.get(to.id)!.push({ edge, from: to.id, to: from.id, duration })
   }
@@ -87,21 +90,21 @@ export function buildNetwork(map: HospitalMap) {
 }
 export type Network = ReturnType<typeof buildNetwork>
 type Phase = 'idle' | 'travel' | 'waiting' | 'handoff' | 'unloading' | 'complete'
-type EventKind = 'dispatch' | 'reroute' | 'warning' | 'arrive' | 'delivery' | 'return'
+type EventKind = 'dispatch' | 'reroute' | 'warning' | 'floor' | 'arrive' | 'delivery' | 'pickup' | 'return'
 export type Mission = {
-  phase: Phase; node: string; goal: string; destination: Destination
+  phase: Phase; node: string; goal: string; destination: Destination; kind: MissionKind
   returning: boolean; route: Leg[]; elapsed: number; time: number; blocked: string[]
   cargo: Cargo[]; events: { text: string; kind: EventKind; time: number }[]
   pinError: boolean
 }
 export type Action =
-  | { type: 'dispatch'; cargo: Cargo[]; destination: Destination }
+  | { type: 'dispatch'; cargo: Cargo[]; destination: Destination; kind?: MissionKind }
   | { type: 'tick'; ms: number }
   | { type: 'block' | 'clear' | 'reset' }
   | { type: 'pin'; value: string }
 
 export function initialMission(net: Network): Mission {
-  return { phase: 'idle', node: net.pharmacy, goal: net.pharmacy, destination: 'emergency', returning: false,
+  return { phase: 'idle', node: net.pharmacy, goal: net.pharmacy, destination: 'emergency', kind: 'delivery', returning: false,
     route: [], elapsed: 0, time: 0, blocked: [], cargo: [], events: [], pinError: false }
 }
 function event(s: Mission, kind: EventKind, text: string): Mission {
@@ -110,8 +113,15 @@ function event(s: Mission, kind: EventKind, text: string): Mission {
 function arrive(s: Mission): Mission {
   if (s.node !== s.goal) return event({ ...s, phase: 'waiting' }, 'warning', 'Ruta sin paso. Robot detenido en un punto seguro.')
   return s.returning
-    ? event({ ...s, phase: 'complete' }, 'return', 'Robot de vuelta en Farmacia Central.')
-    : event({ ...s, phase: 'handoff' }, 'arrive', 'Llegó a ' + destinations[s.destination] + '. Esperando el PIN de recepción.')
+    ? event({ ...s, phase: 'complete' }, 'return', s.kind === 'pickup'
+      ? 'Medicamentos recogidos recibidos en Farmacia Central.' : 'Robot de vuelta en Farmacia Central.')
+    : event({ ...s, phase: 'handoff' }, 'arrive', 'Llegó a ' + destinations[s.destination]
+      + (s.kind === 'pickup' ? '. Esperando el PIN para recoger.' : '. Esperando el PIN de recepción.'))
+}
+export function onboard(s: Mission): readonly Cargo[] {
+  if (s.phase === 'idle' || s.phase === 'complete') return []
+  if (s.kind === 'pickup') return s.returning || s.phase === 'unloading' ? s.cargo : []
+  return s.returning || s.phase === 'unloading' ? [] : s.cargo
 }
 function replan(net: Network, s: Mission, blocked: string[]) {
   const active = s.elapsed > 0 ? s.route[0] : undefined
@@ -138,9 +148,11 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
       if (!goal) return s
       const route = net.path(net.pharmacy, goal.id)
       if (!route) return s
+      const kind = action.kind ?? 'delivery'
       return event({ ...initialMission(net), cargo: action.cargo.map((line) => ({ ...line })),
-        goal: goal.id, destination: action.destination, route, phase: 'travel' },
-      'dispatch', 'Salida de Farmacia Central. Compartimento bloqueado.')
+        goal: goal.id, destination: action.destination, kind, route, phase: 'travel' },
+      'dispatch', kind === 'pickup' ? 'Salida de Farmacia Central sin carga para recoger el pedido.'
+        : 'Salida de Farmacia Central. Compartimento bloqueado.')
     }
     case 'tick': {
       if (action.ms <= 0) return s
@@ -164,6 +176,10 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
         remaining -= step
         if (next.elapsed < leg.duration) return next
         next = { ...next, node: leg.to, elapsed: 0, route: next.route.slice(1) }
+        if (leg.edge.kind === 'lift') {
+          const floor = net.map.floors.find((entry) => entry.id === net.nodes.get(leg.to)?.floor)!
+          next = event(next, 'floor', 'Ascensor: llegó a ' + floor.label + '.')
+        }
         if (!next.route.length) return arrive(next)
         if (remaining === 0) return next
       }
@@ -187,7 +203,9 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
     case 'pin': {
       if (s.phase !== 'handoff') return s
       if (action.value !== DEMO_PIN) return { ...s, pinError: true }
-      return event({ ...s, phase: 'unloading', pinError: false }, 'delivery', 'PIN validado. Compartimento abierto y pedido entregado.')
+      return event({ ...s, phase: 'unloading', pinError: false }, s.kind,
+        s.kind === 'pickup' ? 'PIN validado. Medicamentos recogidos; regreso a Farmacia.'
+          : 'PIN validado. Compartimento abierto y pedido entregado.')
     }
   }
 }

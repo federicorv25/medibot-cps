@@ -1,21 +1,23 @@
 :root {
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
-  color: #172e29;
-  background: #eff3ee;
+  font-family: "Segoe UI", Inter, system-ui, sans-serif;
+  color: #eaf4fa;
+  background: #080f1a;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   font-weight: 500;
-  --green: #154a3b;
-  --ink: #172e29;
-  --muted: #526b63;
-  --border: #dce6de;
-  --card: #fbfdf9;
+  color-scheme: dark;
+  --ink: #eaf4fa;
+  --muted: #9eb1c4;
+  --border: #283b50;
+  --card: #131f30;
+  --teal: #63e1c5;
+  --amber: #ffd08a;
 }
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .52; }
-button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #08745a; outline-offset: 3px; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #8cf5df; outline-offset: 3px; }
 button, select, input { -webkit-tap-highlight-color: transparent; }
 h1, h2, p { margin: 0; }
