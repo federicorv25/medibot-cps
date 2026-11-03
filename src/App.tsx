@@ -130,7 +130,8 @@ export default function App() {
   }
   function startSample() {
     reset()
-    start([{id:'paracetamol',quantity:4},{id:'salina',quantity:2}], 'emergency', 'delivery')
+    start([{id:'paracetamol',quantity:4},{id:'salina',quantity:2}], 'inpatient', 'delivery')
+    setCamera('building')
   }
   function submitPin(event: FormEvent) {
     event.preventDefault()
@@ -169,7 +170,7 @@ export default function App() {
           <p>Entrega y recogida de medicamentos con seguimiento dentro del hospital.</p></div>
         <div className="intro-actions">
           <div className="site-chip"><Building2 size={19}/><div><b>Caja Petrolera de Salud</b><small>Santa Cruz, Bolivia</small></div></div>
-          {!active && <button className="demo-start" type="button" onClick={startSample}><Play size={16} fill="currentColor"/> Probar recorrido</button>}
+          {!active && <button className="demo-start" type="button" onClick={startSample}><Play size={16} fill="currentColor"/> Probar recorrido · 5 plantas</button>}
         </div>
       </div>
       <section className="mission-strip" aria-label="Carga y destino">
@@ -226,7 +227,7 @@ export default function App() {
             <span className="camera-hint">{camera === 'orbit' || camera === 'building' ? 'Arrastra para girar · Rueda para acercar' : 'Cámara: ' + (camera === 'top' ? 'plano' : 'seguimiento')}</span>
           </footer>
           {isLarge && <div className="fullscreen-console"><div><strong>{taskLabel}</strong><small>{trackingCargo}</small></div>
-            {active ? missionControls : <button className="primary" type="button" onClick={startSample}><Play size={16}/> Probar recorrido</button>}</div>}
+            {active ? missionControls : <button className="primary" type="button" onClick={startSample}><Play size={16}/> Probar recorrido · 5 plantas</button>}</div>}
         </section>
 
         <section className="card dispatch-card" aria-labelledby="dispatch-title">
