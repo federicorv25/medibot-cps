@@ -1,156 +1,93 @@
-# Frente de presentación – Jorge
-## MediBot CPS · Prototipo GovHealth – TAJIX
+# MediBot CPS · Presentación GovHealth de TAJIX
 
-Este documento contiene el **guion oficial de presentación (pitch de 3 minutos)** para el jurado evaluador, la **guía reproducible paso a paso de la demo** y el **análisis de límites y métricas para un piloto real**. 
+Guion y guía de uso de la demo integrada. El modelo representa un hospital recreado de cinco plantas y el catálogo solo contiene medicamentos ficticios.
 
-Cualquier evaluador o jurado puede seguir y validar este proyecto **sin necesidad de conocer el código**.
+## Guion de tres minutos
 
----
+**Antes de comenzar:** abre la demo local, verifica WebGL 2, prepara el modo **Recoger** con destino **Internación · Piso 4**, cuatro cajas de Paracetamol y dos bolsas de Solución salina. Espera para pulsar **Despachar robot**. Ten a mano el PIN `0426`. La demo rápida de cinco plantas programa una entrega, por eso la recogida se configura manualmente.
 
-## 1. Guion de Presentación para el Jurado (Pitch de 3 Minutos)
+| Tiempo | Acción y locución |
+|---|---|
+| 0:00–0:35 | **Contexto.** «Somos TAJIX y presentamos MediBot CPS. Nuestra hipótesis es que automatizar parte del traslado interno de medicamentos puede liberar tiempo del personal para la atención. Construimos una simulación para explorar esa logística en un hospital recreado de cinco plantas, inspirado en la Caja Petrolera de Salud de Santa Cruz. Hoy no presentamos ahorros ya medidos ni un robot físico». |
+| 0:35–0:45 | **Despachar la recogida.** Pulsa **Despachar robot**, elige cámara **Edificio** y **Pantalla completa**. «El operador indica medicamento, cantidad y destino. En esta misión el robot sale vacío a recoger: la etiqueta muestra qué busca y hacia dónde va». |
+| 0:45–1:35 | **Mostrar el ascensor.** Mientras avanza y sube, señala la carga, el destino y los cambios de planta. «El recorrido se calcula sobre el mapa. Podemos ver cada nivel, seguir al robot o inspeccionar el edificio completo. La bitácora registra los cambios de planta. Si simulamos un pasillo bloqueado, busca otra ruta; cuando no existe paso, espera hasta que lo liberamos». En el pitch principal explica el desvío; ejecútalo en la prueba adicional para evitar alargar el recorrido. |
+| 1:35–1:45 | **Confirmar la recogida.** Al llegar, escribe `0426` y pulsa **Confirmar recogida**. «El PIN de demostración autoriza cargar el pedido. Ahora la etiqueta cambia: lleva cuatro cajas de Paracetamol y dos bolsas de Solución salina a Farmacia». |
+| 1:45–2:25 | **Regreso visible.** Muestra la bajada y el cambio de carga. «Al volver se conserva el pedido. Los eventos permiten revisar qué sucedió. En esta demo el registro está en memoria; un piloto necesitaría autenticación, almacenamiento y controles físicos». Si aún está regresando, continúa la explicación sin esperar en silencio. |
+| 2:25–3:00 | **Límites y próximo paso.** «El edificio es recreado; no es un plano oficial. Los medicamentos, el ascensor, los bloqueos y la cerradura son simulaciones. Para un piloto mediríamos el tiempo de solicitud a entrega, las misiones de transporte completadas sin ayuda y la recuperación ante bloqueos. Buscamos validar con personal hospitalario qué recorridos aportarían valor antes de llevarlo a un entorno real». |
 
-> **Regla de oro de la presentación:** El proyecto se expone bajo un marco estricto de **hipótesis de trabajo**. Se destaca el potencial de optimización logística intrahospitalaria sin afirmar ahorros económicos o de tiempo que aún no hayan sido medidos empíricamente en campo.
+Los tiempos son una pauta de presentación. El movimiento depende del navegador y las pruebas con bloqueos pueden durar más. Si el equipo se ralentiza, usa [la captura del edificio](capturas-finales/edificio.jpg) mientras explicas y sigue el recorrido al terminar el pitch.
 
-```
-0:00 ──────────────── 0:35 ──────────────── 2:15 ──────────────── 3:00 min
-   [ Problema / Hipótesis ]    [ Demo en Vivo: Flujo Completo ]    [ Trazabilidad / Piloto ]
-```
+## Arranque reproducible
 
-### Bloque 1: Problema y Contexto GovHealth (0:00 – 0:35)
+Node.js 24 o superior. Acceso al repositorio privado. Chrome o Edge con WebGL 2.
 
-* **Objetivo:** Plantear la problemática logística hospitalaria con realismo y rigor técnico.
-* **Locución sugerida:**
-  > *"Buenos días, miembros del jurado. En hospitales de alta demanda como los del sistema de seguridad social —inspiración de este prototipo basado en la Caja Petrolera de Salud de Santa Cruz—, el personal de enfermería y farmacia destina entre un 20% y 30% de su jornada a tareas mecánicas de traslado a pie de medicamentos y suministros críticos.*
-  > 
-  > *Nuestra hipótesis de trabajo con **MediBot CPS** es que un sistema de transporte autónomo intrahospitalario puede absorber la logística rutinaria entre sus cinco plantas, reduciendo tiempos muertos y liberando al personal de salud para lo que realmente importa: la atención directa al paciente.*
-  > 
-  > *Aclaramos que hoy presentamos un prototipo funcional para validar la viabilidad técnica y operativa de navegación, tránsito vertical por ascensor, contingencias y custodia de entrega, sin atribuirnos aún métricas de ahorro definitivas."*
-
----
-
-### Bloque 2: Demostración en Vivo Integrada (0:35 – 2:15)
-
-* **Objetivo:** Demostrar en vivo el centro de control 3D en **pantalla completa**, la etiqueta visible de carga, el uso del ascensor entre plantas, el desvío ante bloqueo y los flujos de entrega y recogida.
-* **Secuencia de acciones y locución simultánea:**
-
-| Tiempo | Acción en Pantalla | Locución del Presentador |
-|---|---|---|
-| **0:35 – 0:55** | **Vista 3D y Despacho:**<br>1. Activar modo **Pantalla Completa** con los controles de misión.<br>2. Seleccionar modo **Entregar**, elegir medicamento ficticio (ej. *Cefotaxima 1g*), cantidad (ej. 3 uds) y destino: **Urgencias** (Planta Baja).<br>3. Clic en **Despachar robot**.<br>4. Notar la **etiqueta flotante** sobre el robot con la carga y destino en tiempo real. | *"Abrimos el centro de control en pantalla completa. El operador programa un despacho desde Farmacia Central hacia Urgencias. Observen la etiqueta flotante sobre el robot: muestra en tiempo real su carga a bordo, estado y destino mientras inicia su recorrido por el pasillo principal."* |
-| **0:55 – 1:25** | **Contingencia y Desvío:**<br>1. Presionar **Bloquear pasillo** a mitad de camino.<br>2. El sistema emite el aviso *«Ruta alternativa calculada»* y toma el anillo sur.<br>3. *(Opcional)* Probar bloqueo total: el robot se detiene de forma segura y reanuda al liberar el paso. | *"En un hospital real surgen camillas o áreas bloqueadas. Provocamos un bloqueo en el pasillo principal: el robot se detiene de forma segura, detecta la obstrucción y recalcula inmediatamente su ruta por el anillo sur a través de los pasos de servicio, sin intervención manual."* |
-| **1:25 – 1:50** | **Custodia con PIN y Retorno:**<br>1. Llegada a Urgencias.<br>2. Introducir PIN incorrecto (se deniega la apertura), luego el **PIN demo `0426`**.<br>3. El compartimento se desbloquea, se valida la entrega y el robot inicia el retorno a Farmacia Central. | *"Al llegar a Urgencias, el cargamento permanece bloqueado. Si se introduce un PIN erróneo, la cerradura no cede; con el PIN de autorización `0426`, se libera el compartimento, se registra la recepción y el robot regresa automáticamente a su base."* |
-| **1:50 – 2:15** | **Tránsito Vertical (5 Plantas / Recogida):**<br>1. Demostrar el botón **«Probar recorrido – 5 plantas»** o programar una **Recogida** en *Internación – Piso 4*.<br>2. Ver al robot tomar el **ascensor**, subir de nivel y llegar a la planta alta sin carga hasta que se introduce el PIN. | *"El sistema no se limita a una planta: MediBot gestiona las cinco plantas del hospital. Muestra de ello es la misión de recogida: el robot viaja al Piso 4 vía ascensor, donde tras validar el PIN `0426` carga las muestras y regresa a Farmacia Central con el inventario asegurado."* |
-
----
-
-### Bloque 3: Trazabilidad, Límites y Piloto Real (2:15 – 3:00)
-
-* **Objetivo:** Explicar con honestidad y madurez técnica el alcance, los componentes simulados y los indicadores para un piloto en campo.
-* **Locución sugerida:**
-  > *"Como muestra la bitácora en pantalla, cada evento queda registrado con trazabilidad de auditoría: tiempos de salida, paradas por pasillos, llamadas de ascensor, autorizaciones de PIN y retorno a base.*
-  > 
-  > *Deseamos ser muy claros respecto a los **límites del prototipo**:*
-  > * *El hospital de 5 plantas es una recreación sintética para validación de software, no un plano arquitectónico oficial.*
-  > * *Los medicamentos e inventarios son ficticios.*
-  > * *La navegación ortogonal, la llamada del ascensor y la cerradura por PIN son simulaciones lógicas de software, no controles de grado de producción física.*
-  > 
-  > *¿Qué mediríamos en un **piloto real de campo** en la CPS? Tres indicadores clave:*
-  > 1. ***Tiempo de ciclo solicitud-entrega*** *frente al traslado a pie tradicional.*
-  > 2. ***Tasa de misiones completadas con autonomía total***.*
-  > 3. ***Tiempo de detección y recuperación*** *ante congestiones y eventos de bloqueo.*
-  > 
-  > *MediBot CPS demuestra que la logística autónoma en salud pública es viable, segura y medible. Quedamos a su disposición para sus preguntas."*
-
----
-
-## 2. Guía Reproducible de la Demo (Paso a Paso)
-
-Cualquier persona puede ejecutar y evaluar la solución localmente en su equipo siguiendo estos pasos:
-
-### Requisitos del Sistema
-* **Node.js:** Versión 24 o superior (`node -v`).
-* **Navegador web moderno:** Google Chrome, Microsoft Edge, Firefox o Safari con aceleración por hardware (WebGL).
-
-### Instrucciones de Instalación y Arranque
-```bash
-# 1. Clonar el repositorio y acceder a la carpeta
+```sh
 git clone https://github.com/federicorv25/medibot-cps.git
 cd medibot-cps
-
-# 2. Instalar dependencias exactas
 npm ci
-
-# 3. Iniciar el servidor local de desarrollo
 npm run dev
 ```
 
-Abre en tu navegador la URL local indicada en la consola (por defecto: `http://localhost:5173`).
+Abre la dirección indicada por Vite. Configura la misión antes de pulsar **Pantalla completa**; dentro del visor ampliado quedan los controles de bloqueo y PIN, no el formulario completo.
 
----
+## Pruebas de la demo
 
-### Secuencia de Prueba de los Flujos Principales
+### A. Entrega a Urgencias con desvío
 
-#### Flujo A: Entrega con Bloqueo y Desvío Dinámico
-1. **Verificar punto de partida:** El robot se encuentra estacionado en **Farmacia Central** (Planta Baja).
-2. **Configurar misión:**
-   * Operación: **Entregar**.
-   * Medicamento: Seleccionar cualquier insumo del catálogo ficticio y la cantidad deseada.
-   * Destino: **Urgencias** (Planta Baja).
-3. **Despacho:** Hacer clic en **«Despachar robot»** y activar **Pantalla Completa** para mejor visualización.
-4. **Inducir desvío:** Cuando el robot transite por el pasillo central, hacer clic en **«Bloquear pasillo»**.
-   * *Resultado esperado:* El robot se detiene, emite el evento *«Ruta alternativa calculada»* y toma el desvío por el anillo sur.
-5. **Validación de PIN:**
-   * Al arribar a Urgencias, ingresar el **PIN de demo:** `0426`.
-   * Presionar **«Confirmar recepción»**.
-6. **Retorno:** El robot regresa de forma autónoma a Farmacia Central y la bitácora registra la misión como completada.
+1. Desde el estado inicial elige **Entregar** y **Urgencias · Planta baja**.
+2. Deja Paracetamol en 4 y Solución salina en 2; Amoxicilina en 0 significa que no se incluye.
+3. Pulsa **Despachar robot**. Confirma que la etiqueta y la franja superior indican seis unidades a bordo.
+4. Pulsa **Bloquear pasillo** al inicio del viaje. La bitácora debe mostrar «Pasillo bloqueado. Ruta alternativa calculada».
+5. Si quieres probar el caso sin paso, bloquea otra alternativa antes de llegar. Cuando no quede ruta, el robot termina el tramo en curso y se detiene en un nodo seguro. Pulsa **Liberar paso** para reanudar.
+6. Al llegar a Urgencias, prueba `1111` y pulsa **Confirmar entrega**: el compartimento debe seguir cerrado.
+7. Escribe `0426` y pulsa **Confirmar entrega**. El robot entrega el pedido, regresa vacío y registra «Robot de vuelta en Farmacia Central».
 
-#### Flujo B: Tránsito Vertical por Ascensor y Recorrido de 5 Plantas
-* Presionar el botón **«Probar recorrido – 5 plantas»**:
-  * La cámara cambia a la vista de edificio completo.
-  * El robot se desplaza hasta el ascensor, sube a través de los pisos 1 a 4 y concluye el recorrido en Internación.
+La obstrucción se inserta en un tramo que aún no ha comenzado. El robot completa el tramo actual antes de tomar el desvío; no se teletransporta ni se detiene inmediatamente en mitad del pasillo.
 
-#### Flujo C: Misión de Recogida
-1. Seleccionar la pestaña **«Recoger»**.
-2. Destino: **Internación – Piso 4**.
-3. Clic en **«Despachar robot»**:
-   * El robot viaja sin carga a bordo hasta el Piso 4.
-   * En destino se introduce el PIN `0426` para cargar los insumos.
-   * El robot retorna a Farmacia con los medicamentos a bordo.
+### B. Entrega por las cinco plantas
 
----
+1. Desde el estado inicial, pulsa **Probar recorrido · 5 plantas**.
+2. Se programa una **entrega** a Internación · Piso 4 con Paracetamol ×4 y Solución salina ×2; la cámara cambia a **Edificio**.
+3. Abre **Pantalla completa**. Observa la subida y los eventos de los pisos 1, 2, 3 y 4.
+4. Valida con `0426` y **Confirmar entrega**. Regresa sin carga a Farmacia.
+5. Para programar otra misión desde el formulario, sal del visor ampliado y espera el retorno o pulsa **Reiniciar demo**.
 
-## 3. Matriz de Alcance y Límites del Prototipo GovHealth
+### C. Recogida desde Internación
 
-| Dimensión | Implementación en este Prototipo | Alcance para Piloto Real / Producción |
+1. Elige **Recoger**, **Internación · Piso 4** y las cantidades deseadas.
+2. Pulsa **Despachar robot** y observa que «Por recoger» y «Sin carga» describen la salida.
+3. Al llegar escribe `0426` y pulsa **Confirmar recogida**.
+4. Durante el regreso la franja superior y la etiqueta muestran los medicamentos a bordo.
+5. Al terminar aparece «Medicamentos recogidos recibidos en Farmacia Central» y cero unidades a bordo.
+
+## Evidencia visual de la combinación final
+
+![Centro de control con el modelo de cinco plantas](capturas-finales/centro-control.jpg)
+
+![Edificio completo y recorrido del robot](capturas-finales/edificio.jpg)
+
+Las capturas de esta sección proceden del modelo final de Asael y del visor adaptado de Federico. No son renders de un robot físico.
+
+## Límites que deben explicarse
+
+| Elemento | Demo actual | Pendiente para un piloto |
 |---|---|---|
-| **Modelo del Hospital** | Recreación geométrica de 5 plantas inspirada en la CPS Santa Cruz para pruebas algorítmicas. | Relevamiento topográfico con planos autorizados y mapeo LiDAR en sitio. |
-| **Insumos y Fármacos** | Catálogo sintético para validación de cargas y volumen en interfaz. | Integración estándar HL7/FHIR con el ERP hospitalario y el dispensario central. |
-| **Control de Acceso / PIN** | PIN numérico estático de demostración (`0426`) en interfaz gráfica. | Lector NFC de credencial hospitalaria o biometría con registro auditable. |
-| **Navegación y Sensores** | Algoritmo determinista sobre grafo ortogonal con nodos fijos y desvíos programados. | Pila ROS 2 con SLAM LiDAR 2D/3D, cámaras de profundidad y detección de obstáculos dinámicos. |
-| **Ascensores y Tránsito** | Simulación lógica de cambio de nivel entre plantas alineadas. | Integración con protocolo de control de elevadores hospitalarios (PLC / relés de llamado). |
+| Hospital | Mapa ilustrativo de cinco plantas. | Planos autorizados y relevamiento del sitio. |
+| Carga | Catálogo de Paracetamol, Solución salina y Amoxicilina con cantidades. | Validar procesos de farmacia, inventario, conservación y custodia con personal responsable. |
+| Navegación | Rutas en un grafo y bloqueos manuales. | Hardware, sensores, mapeo y navegación probados en un entorno controlado. |
+| Ascensor | Cambio de planta simulado. | Compatibilidad, seguridad e integración con el ascensor real. |
+| PIN | Código estático `0426` para la demo. | Identidad, permisos y controles físicos adecuados. |
+| Bitácora | Eventos en memoria del navegador. | Persistencia, control de acceso y auditoría. |
 
----
+El transporte de muestras, RFID y una integración clínica son propuestas futuras. Ninguna cifra de ahorro o porcentaje de jornada se atribuye al hospital sin un estudio que la sustente.
 
-## 4. Métricas de Evaluación para el Piloto Real en la CPS
+## Indicadores para un piloto
 
-Para medir el impacto de la hipótesis de optimización logística, el plan piloto cuantificará:
+- **Tiempo de ciclo:** instante de entrega menos instante de solicitud, medido por misión. Comparar las medianas de trayectos equivalentes manuales y asistidos.
+- **Diferencia de tiempo:** tiempo del traslado manual menos tiempo del traslado asistido. Es una comparación, no la definición del tiempo de ciclo.
+- **Autonomía del transporte:** misiones cuyo trayecto se completa sin ayuda para mover el robot / misiones solicitadas × 100. La carga y el PIN humanos previstos no cuentan como fallos.
+- **Recuperación ante bloqueos:** tiempo desde que se registra una obstrucción hasta que el robot reanuda un trayecto válido, separando los casos en que no existe ruta.
 
-1. **Tiempo Medio de Ciclo de Entrega ($T_{ciclo}$):**
-   $$T_{\text{ciclo}} = T_{\text{entrega manual tradicional}} - T_{\text{entrega autónoma MediBot}}$$
-2. **Tasa de Autonomía de Misión ($TAM$):**
-   $$TAM = \left( \frac{\text{Misiones concluidas sin asistencia humana}}{\text{Total de misiones solicitadas}} \right) \times 100$$
-3. **Resiliencia Operativa ante Bloqueos ($T_{recup}$):**
-   Tiempo promedio en segundos desde la detección de una obstrucción hasta el recálculo y adopción de la ruta alternativa.
+## Registro de revisión
 
----
-
-## 5. Registro de Integración y Validación Técnica (TAJIX)
-
-De acuerdo con el protocolo de integración acordado (`#1` Mapa Asael $\rightarrow$ `#3` Simulación Federico $\rightarrow$ `#2` Documentación Jorge):
-
-| Componente | Rama / PR | SHA Verificado | Estado |
-|---|---|---|---|
-| **Mapa Hospitalario 5 Plantas** | `feat/mapa-hospital` (PR #1) | `f4fedeb7` *(actualizando a 5 plantas)* | En preparación |
-| **Simulación 3D y Despacho** | `feat/simulacion-robot` (PR #3) | `95d6cb4` | En preparación |
-| **Guion, Demo y Documentación** | `docs/presentacion-govhealth` (PR #2) | *Este commit* | **Listo para revisión conjunta** |
-
-> **Nota:** La documentación será refrendada contra la versión final combinada de la rama temporal antes de la aprobación final y el merge ordenado a `main`.
+La verificación final combina el mapa de Asael (`e63972bcfd6870703e97c9fc9200ee3c07a43a06`), el visor adaptado de Federico y este PR de documentación en una rama temporal. El comentario final de revisión en [PR #2](https://github.com/federicorv25/medibot-cps/pull/2) registra los SHA exactos de los tres PR y el resultado de las pruebas. La integración a `main` se coordina en orden **#1 → #3 → #2** cuando los tres estén Ready.
