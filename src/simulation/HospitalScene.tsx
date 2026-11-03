@@ -143,6 +143,7 @@ function buildRobot() {
 function dispose(group: T.Object3D) {
   const geometries = new Set<T.BufferGeometry>()
   const materials = new Set<T.Material>()
+  const textures = new Set<T.Texture>()
   group.traverse((object) => {
     const item = object as T.Mesh
     if (item.geometry) geometries.add(item.geometry)
@@ -150,9 +151,10 @@ function dispose(group: T.Object3D) {
   })
   for (const g of geometries) g.dispose()
   for (const m of materials) {
-    if (m instanceof T.SpriteMaterial) m.map?.dispose()
+    if ('map' in m && m.map instanceof T.Texture) textures.add(m.map)
     m.dispose()
   }
+  for (const texture of textures) texture.dispose()
 }
 
 interface Props { net: Network; mission: Mission; view: CameraView; shownFloor: string; robotTask: string; robotCargo: string; facade: boolean }
@@ -260,6 +262,11 @@ export default function HospitalScene(props: Props) {
         camera.lookAt(controls.target); controls.update(); measure()
       }
       if (all) {
+        const span = Math.max(largestFloor * .97, (high - low) * separation + largestFloor * .55)
+        if (Math.abs(span - frustumSpan) > .01) {
+          frustumSpan = span
+          measure()
+        }
         const center = (high + low) * separation / 2 + facadeLevel * FLOOR_HEIGHT / 2
         const shift = center - controls.target.y
         if (Math.abs(shift) > 1e-3) { controls.target.y += shift; camera.position.y += shift }

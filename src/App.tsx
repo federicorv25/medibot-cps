@@ -41,7 +41,7 @@ export default function App() {
   const [destination, setDestination] = useState<Destination>('emergency')
   const [kind, setKind] = useState<MissionKind>('delivery')
   const [quantities, setQuantities] = useState(initialQuantities)
-  const [camera, setCamera] = useState<CameraView>('orbit')
+  const [camera, setCamera] = useState<CameraView>('building')
   const [facade, setFacade] = useState(true)
   const facadeShown = camera === 'building' && facade
   const [floorOverride, setFloorOverride] = useState<string | null>(null)
@@ -56,7 +56,9 @@ export default function App() {
     const tick = (now: number) => {
       const elapsed = now - timing.previous
       if (elapsed >= 30) {
-        dispatch({ type: 'tick', ms: Math.min(120, elapsed) })
+        // Mantener el tiempo real aunque el navegador reduzca cuadros al
+        // alternar a PowerPoint o activar el ahorro de energía.
+        dispatch({ type: 'tick', ms: elapsed })
         timing.previous = now
       }
       timing.frame = requestAnimationFrame(tick)
@@ -121,12 +123,15 @@ export default function App() {
     setQuantities(initialQuantities)
     setDestination('emergency')
     setKind('delivery')
-    setCamera('orbit')
+    setCamera('building')
+    setFacade(true)
     setFloorOverride(null)
     setPin('')
   }
   function start(requestedCargo: Cargo[], requestedDestination: Destination, requestedKind: MissionKind) {
     setPin(''); setFloorOverride(null)
+    // El recorrido debe verse: al despachar abrimos el hospital.
+    setFacade(false)
     setCamera('orbit')
     dispatch({ type: 'dispatch', cargo: requestedCargo, destination: requestedDestination, kind: requestedKind })
   }
