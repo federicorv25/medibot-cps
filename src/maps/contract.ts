@@ -1,5 +1,6 @@
 export type Point = readonly [x: number, z: number]
-export type Station = 'pharmacy' | 'emergency' | 'surgery' | 'inpatient'
+/** Diagnóstico y cuidados son destinos adicionales; los mapas existentes pueden omitirlos. */
+export type Station = 'pharmacy' | 'emergency' | 'surgery' | 'inpatient' | 'diagnostics' | 'care'
 export type RoomKind = Station | 'support' | 'lift'
 export interface Floor { id: string; label: string; level: number; size: Point }
 export interface Room {
