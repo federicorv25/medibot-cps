@@ -35,6 +35,17 @@ Configura tipo de misión, destino y cantidades antes de entrar en pantalla comp
 | Piso 3 | Cuidados intensivos |
 | Piso 4 | Internación |
 
+## Complejo hospitalario 3D
+
+Desde el centro de control, **Complejo 3D · 3 torres** abre `complejo.html`: tres torres en U alrededor de un patio con jardín (Torre Oeste, Torre Central y Torre Este, 13 plantas en total).
+
+- Elige una o varias torres con los botones o con clic sobre el edificio (Ctrl/Shift + clic suma otra). Las demás quedan transparentes.
+- **Fachada exterior** muestra u oculta la piel de las torres elegidas; **Separar plantas** abre los pisos para ver las salas.
+- **Circuito de MediBot** marca en verde los pasillos, el ascensor y el camino del patio.
+- **Iniciar recorrido** hace que MediBot salga de su **Estación MediBot** (Torre Oeste, planta baja), recorra todas las plantas de las torres elegidas, entregue en la sala principal de cada piso y vuelva a la estación. Permite pausar, detener y elegir la velocidad.
+
+Es un complejo ficticio con fines ilustrativos; el simulador del centro de control sigue usando el mapa de cinco plantas.
+
 ## Evidencia y guion
 
 - [Guion de tres minutos y pruebas paso a paso](docs/presentacion-jorge.md)

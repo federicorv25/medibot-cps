@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#102723" />
+  <meta name="description" content="Complejo hospitalario 3D de MediBot CPS, equipo TAJIX." />
+  <title>MediBot CPS · Complejo hospitalario 3D</title>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="panel">
+ <h1>Complejo hospitalario · MediBot</h1>
+ <p class="sub">3 torres · 13 plantas · circuito del robot</p>
+ <div class="lbl">Torres (puedes elegir varias)</div>
+ <div class="row" id="towerChips"></div>
+ <div class="lbl">Vista</div>
+ <button class="tog" id="tFacade" aria-pressed="true">Fachada exterior<i></i></button>
+ <button class="tog" id="tSep" aria-pressed="false" disabled>Separar plantas<i></i></button>
+ <button class="tog" id="tRoute" aria-pressed="true">Circuito de MediBot<i></i></button>
+ <button class="tog" id="tFollow" aria-pressed="true">Seguir al robot en el recorrido<i></i></button>
+ <div class="lbl">Recorrido</div>
+ <button class="go" id="go">▶ Iniciar recorrido</button>
+ <div class="ctl" id="ctl" style="display:none"><button id="pause">Pausa</button><button id="stop">Detener</button>
+  <select id="speed" aria-label="Velocidad"><option value="1">×1</option><option value="2" selected>×2</option><option value="4">×4</option></select></div>
+ <div class="status" id="status"><b id="stTitle">—</b><small id="stSub">—</small><div class="bar"><div id="stBar"></div></div></div>
+ <div class="lbl">Áreas</div>
+ <div class="leg" id="leg"></div>
+ <div class="note">Complejo ficticio con fines ilustrativos. No es el plano de ningún hospital real.</div>
+</div>
+<div id="info"></div>
+<div id="tag"></div>
+<div class="hint">Clic en una torre para elegirla · Ctrl/Shift + clic para sumar · arrastra para girar</div>
+<a class="back" href="./">← Centro de control</a>
+<script type="module" src="/src/campus/main.ts"></script>
+</body>
+</html>
