@@ -86,6 +86,10 @@ function renderRoom(parent: T.Group, room: Room) {
     box(block, w * .73, .14, d * .72, 0, .21, 0, border)
   }
   const tag = label(room.label, accent)
+  // El modelo final tiene salas de 4 m junto a salas mayores.
+  // Ajustar el ancho del rótulo a su sala evita invadir el rótulo vecino.
+  const labelWidth = Math.min(6.3, w * .91)
+  tag.scale.set(labelWidth, labelWidth * 104 / 512, 1)
   tag.position.set(0, 1.72, room.door === 'north' ? .75 : -.55); block.add(tag)
 }
 function buildFloor(model: HospitalMap, id: string) {

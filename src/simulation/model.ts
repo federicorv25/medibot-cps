@@ -33,6 +33,10 @@ export function buildNetwork(map: HospitalMap) {
   }
   const pharmacy = stations.get('pharmacy')
   if (!pharmacy || !(['emergency', 'surgery', 'inpatient'] as const).every((name) => stations.has(name))) throw new Error('Faltan estaciones obligatorias.')
+  const stationLabels = new Map([...stations.keys()].map((station) => [
+    station, map.rooms.find((room) => room.kind === station)?.label ??
+      (station === 'pharmacy' ? 'Farmacia Central' : destinations[station]),
+  ]))
   const at = (id: string): XYZ => {
     const node = nodes.get(id)
     if (!node) throw new Error('Nodo desconocido: ' + id)
@@ -86,7 +90,7 @@ export function buildNetwork(map: HospitalMap) {
   for (const station of stations.values()) {
     if (!path(pharmacy.id, station.id)) throw new Error('Estación sin acceso: ' + station.station)
   }
-  return { map, nodes, edges, stations, pharmacy: pharmacy.id, at, path }
+  return { map, nodes, edges, stations, stationLabels, pharmacy: pharmacy.id, at, path }
 }
 export type Network = ReturnType<typeof buildNetwork>
 type Phase = 'idle' | 'travel' | 'waiting' | 'handoff' | 'unloading' | 'complete'
@@ -110,12 +114,12 @@ export function initialMission(net: Network): Mission {
 function event(s: Mission, kind: EventKind, text: string): Mission {
   return { ...s, events: [...s.events, { kind, text, time: s.time }] }
 }
-function arrive(s: Mission): Mission {
+function arrive(net: Network, s: Mission): Mission {
   if (s.node !== s.goal) return event({ ...s, phase: 'waiting' }, 'warning', 'Ruta sin paso. Robot detenido en un punto seguro.')
   return s.returning
     ? event({ ...s, phase: 'complete' }, 'return', s.kind === 'pickup'
       ? 'Medicamentos recogidos recibidos en Farmacia Central.' : 'Robot de vuelta en Farmacia Central.')
-    : event({ ...s, phase: 'handoff' }, 'arrive', 'Llegó a ' + destinations[s.destination]
+    : event({ ...s, phase: 'handoff' }, 'arrive', 'Llegó a ' + net.stationLabels.get(s.destination)
       + (s.kind === 'pickup' ? '. Esperando el PIN para recoger.' : '. Esperando el PIN de recepción.'))
 }
 export function onboard(s: Mission): readonly Cargo[] {
@@ -170,7 +174,7 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
       let next = s
       while (next.phase === 'travel') {
         const leg = next.route[0]
-        if (!leg) return arrive(next)
+        if (!leg) return arrive(net,next)
         const step = Math.min(remaining, leg.duration - next.elapsed)
         next = { ...next, time: next.time + step, elapsed: next.elapsed + step }
         remaining -= step
@@ -180,7 +184,7 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
           const floor = net.map.floors.find((entry) => entry.id === net.nodes.get(leg.to)?.floor)!
           next = event(next, 'floor', 'Ascensor: llegó a ' + floor.label + '.')
         }
-        if (!next.route.length) return arrive(next)
+        if (!next.route.length) return arrive(net,next)
         if (remaining === 0) return next
       }
       return next
@@ -192,7 +196,7 @@ export function transition(net: Network, s: Mission, action: Action): Mission {
       const changed = event(next, possible ? 'reroute' : 'warning', possible
         ? 'Pasillo bloqueado. Ruta alternativa calculada.'
         : 'Pasillo bloqueado. No hay ruta alternativa.')
-      return changed.route.length ? changed : arrive(changed)
+      return changed.route.length ? changed : arrive(net,changed)
     }
     case 'clear': {
       if (!s.blocked.length) return s

@@ -85,7 +85,7 @@ export default function App() {
   const currentFloor = net.nodes.get(mission.node)!.floor
   const shownFloor = camera === 'follow' || camera === 'building' ? currentFloor : floorOverride ?? currentFloor
   const destinationKey = active ? mission.destination : destination
-  const destinationName = destinations[destinationKey]
+  const destinationName = net.stationLabels.get(destinationKey)!
   const destinationFloor = floorLabel(net.stations.get(destinationKey)!.floor)
   const outbound = active && !mission.returning
   const pickup = active ? mission.kind === 'pickup' : kind === 'pickup'
@@ -242,7 +242,7 @@ export default function App() {
             </div>
             <label className="field-title" htmlFor="destination">Destino</label>
             <div className="select-wrap"><MapPin size={16}/><select id="destination" value={destination} onChange={(event) => setDestination(event.target.value as Destination)}>
-              {options.map((id) => <option key={id} value={id}>{destinations[id]} · {floorLabel(net.stations.get(id)!.floor)}</option>)}
+              {options.map((id) => <option key={id} value={id}>{net.stationLabels.get(id)} · {floorLabel(net.stations.get(id)!.floor)}</option>)}
             </select></div>
             <div className="label-row"><span className="field-title">Medicamentos</span><span>Cant.</span></div>
             <div className="cargo-list">{catalog.map((item) => <div key={item.id} className="cargo-row">

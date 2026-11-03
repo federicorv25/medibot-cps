@@ -36,6 +36,26 @@ describe('mapa transitable', () => {
   })
 })
 
+describe('integración con el modelo del hospital', () => {
+  const mapped = buildNetwork(hospital)
+  for (const destination of ['emergency', 'diagnostics', 'surgery', 'care', 'inpatient'] as const) {
+    it('entrega y recoge en ' + destination + ' conservando la carga', () => {
+      if (!mapped.stations.has(destination)) return
+      for (const kind of ['delivery','pickup'] as const) {
+        const start = transition(mapped, initialMission(mapped), { type: 'dispatch', cargo: [...cargo], destination, kind })
+        const stop = transition(mapped,start,{type:'tick',ms:300_000})
+        expect(stop.phase).toBe('handoff')
+        expect(stop.node).toBe(mapped.stations.get(destination)!.id)
+        expect(onboard(stop)).toEqual(kind === 'pickup' ? [] : cargo)
+        const loaded = transition(mapped,stop,{type:'pin',value:DEMO_PIN})
+        const home = transition(mapped,loaded,{type:'tick',ms:300_000})
+        expect(home.phase).toBe('complete')
+        expect(home.node).toBe(mapped.pharmacy)
+      }
+    })
+  }
+})
+
 describe('traslado simulado', () => {
   it('no despacha sin carga ni con cantidades fraccionarias', () => {
     const idle = initialMission(net)
