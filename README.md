@@ -17,8 +17,10 @@ Abre la URL que muestre Vite, normalmente [http://localhost:5173](http://localho
 
 ## Presentación rápida
 
+Al abrir la demo se ve la **fachada** ilustrativa. Pulsa **Ver por dentro** para abrir las cinco plantas. Puedes volver a **Fachada** en cualquier momento; las vistas **3D**, **Plano** y **Seguir robot** muestran siempre el interior.
+
 1. Pulsa **Probar recorrido · 5 plantas**. Inicia una **entrega** de cuatro cajas de Paracetamol y dos bolsas de Solución salina a Internación · Piso 4.
-2. Pulsa **Pantalla completa**. La vista **Edificio** muestra los niveles separados y el robot subiendo por el ascensor. La etiqueta sobre él indica su carga y destino.
+2. El despacho abre el interior automáticamente. Pulsa **Pantalla completa**. La vista **Edificio** muestra los niveles separados y el robot subiendo por el ascensor. La etiqueta sobre él indica su carga y destino.
 3. Al llegar, introduce **0426** y pulsa **Confirmar entrega**. El robot deja la carga y regresa vacío a Farmacia. Puedes salir del visor ampliado con **Salir de pantalla completa** o Escape.
 4. Para probar una **recogida**, termina la misión o pulsa **Reiniciar demo** antes de ampliar. Elige **Recoger**, Internación · Piso 4 y las cantidades; luego **Despachar robot**. Viaja vacío, carga al validar el PIN con **Confirmar recogida** y vuelve con los medicamentos.
 5. Para mostrar un desvío, despacha a **Urgencias · Planta baja** y pulsa **Bloquear pasillo** al inicio del trayecto. Comprueba «Ruta alternativa calculada» en la bitácora. Si bloqueas todas las alternativas, espera en un punto seguro; **Liberar paso** permite continuar.
@@ -38,6 +40,7 @@ Configura tipo de misión, destino y cantidades antes de entrar en pantalla comp
 - [Guion de tres minutos y pruebas paso a paso](docs/presentacion-jorge.md)
 - [Vista final del centro de control](docs/capturas-finales/centro-control.jpg)
 - [Edificio de cinco plantas](docs/capturas-finales/edificio.jpg)
+- [Fachada ilustrativa del hospital](docs/capturas-finales/hospital-fachada.jpg)
 
 Las capturas finales corresponden al modelo de Asael combinado con el visor de Federico. Las capturas históricas de `docs/capturas-mapa/` se conservan como evidencia de desarrollo.
 
@@ -49,16 +52,17 @@ npm test
 npm run build
 ```
 
-La combinación final tiene 20 pruebas de mapa y simulación: acceso a los destinos, puertas, ascensores, desvío, parada sin ruta, recuperación, PIN y conservación de la carga en entrega/recogida. Las pruebas automáticas se complementan con recorridos visibles en Chrome.
+La combinación final tiene 24 pruebas de mapa, fachada y simulación: acceso a los destinos, puertas, ascensores, desvío, parada sin ruta, recuperación, PIN y conservación de la carga en entrega/recogida. Las pruebas automáticas se complementan con recorridos visibles en Chrome.
 
 ## Equipo
 
 - **Asael:** modelo de cinco plantas y grafo transitable — [PR #1](https://github.com/federicorv25/medibot-cps/pull/1).
+- **Asael:** fachada exterior activable — [PR #4](https://github.com/federicorv25/medibot-cps/pull/4).
 - **Federico:** centro de control y simulación del robot — [PR #3](https://github.com/federicorv25/medibot-cps/pull/3).
 - **Jorge:** guion, documentación y guía de demostración — [PR #2](https://github.com/federicorv25/medibot-cps/pull/2).
 
 ## Alcance del prototipo
 
-El hospital es un mapa recreado, sin plano oficial ni mediciones verificadas de las instalaciones. Los medicamentos y cantidades son ficticios. El movimiento, el bloqueo de pasillos, el ascensor y la cerradura se simulan en el navegador; no hay SLAM real, sensores físicos ni un sistema de custodia certificado. La bitácora vive en memoria y se borra al reiniciar o recargar.
+El hospital y su fachada son recreados, sin plano oficial ni mediciones verificadas de las instalaciones. La fachada no representa el exterior real de la CPS. Los medicamentos y cantidades son ficticios. El movimiento, el bloqueo de pasillos, el ascensor y la cerradura se simulan en el navegador; no hay SLAM real, sensores físicos ni un sistema de custodia certificado. La bitácora vive en memoria y se borra al reiniciar o recargar.
 
 El transporte de muestras, RFID, integración clínica y un robot físico son posibles líneas futuras, pendientes de diseño y validación. No se han medido ahorros de tiempo, costos ni resultados clínicos. [El guion](docs/presentacion-jorge.md#indicadores-para-un-piloto) define qué medir en un piloto.

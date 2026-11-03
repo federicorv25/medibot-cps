@@ -4,12 +4,12 @@ Guion y guía de uso de la demo integrada. El modelo representa un hospital recr
 
 ## Guion de tres minutos
 
-**Antes de comenzar:** abre la demo local, verifica WebGL 2, prepara el modo **Recoger** con destino **Internación · Piso 4**, cuatro cajas de Paracetamol y dos bolsas de Solución salina. Espera para pulsar **Despachar robot**. Ten a mano el PIN `0426`. La demo rápida de cinco plantas programa una entrega, por eso la recogida se configura manualmente.
+**Antes de comenzar:** abre la demo local y verifica WebGL 2. La vista inicial muestra la fachada ilustrativa del hospital. Prepara el modo **Recoger** con destino **Internación · Piso 4**, cuatro cajas de Paracetamol y dos bolsas de Solución salina. Espera para pulsar **Despachar robot**. Ten a mano el PIN `0426`. La demo rápida de cinco plantas programa una entrega, por eso la recogida se configura manualmente.
 
 | Tiempo | Acción y locución |
 |---|---|
 | 0:00–0:35 | **Contexto.** «Somos TAJIX y presentamos MediBot CPS. Nuestra hipótesis es que automatizar parte del traslado interno de medicamentos puede liberar tiempo del personal para la atención. Construimos una simulación para explorar esa logística en un hospital recreado de cinco plantas, inspirado en la Caja Petrolera de Salud de Santa Cruz. Hoy no presentamos ahorros ya medidos ni un robot físico». |
-| 0:35–0:45 | **Despachar la recogida.** Pulsa **Despachar robot**, elige cámara **Edificio** y **Pantalla completa**. «El operador indica medicamento, cantidad y destino. En esta misión el robot sale vacío a recoger: la etiqueta muestra qué busca y hacia dónde va». |
+| 0:35–0:45 | **Mostrar el hospital y despachar.** Enseña la fachada unos segundos y pulsa **Ver por dentro**. Después pulsa **Despachar robot**, elige cámara **Edificio** y **Pantalla completa**. El despacho mantiene la fachada abierta. «El operador indica medicamento, cantidad y destino. En esta misión el robot sale vacío a recoger: la etiqueta muestra qué busca y hacia dónde va». |
 | 0:45–1:35 | **Mostrar el ascensor.** Mientras avanza y sube, señala la carga, el destino y los cambios de planta. «El recorrido se calcula sobre el mapa. Podemos ver cada nivel, seguir al robot o inspeccionar el edificio completo. La bitácora registra los cambios de planta. Si simulamos un pasillo bloqueado, busca otra ruta; cuando no existe paso, espera hasta que lo liberamos». En el pitch principal explica el desvío; ejecútalo en la prueba adicional para evitar alargar el recorrido. |
 | 1:35–1:45 | **Confirmar la recogida.** Al llegar, escribe `0426` y pulsa **Confirmar recogida**. «El PIN de demostración autoriza cargar el pedido. Ahora la etiqueta cambia: lleva cuatro cajas de Paracetamol y dos bolsas de Solución salina a Farmacia». |
 | 1:45–2:25 | **Regreso visible.** Muestra la bajada y el cambio de carga. «Al volver se conserva el pedido. Los eventos permiten revisar qué sucedió. En esta demo el registro está en memoria; un piloto necesitaría autenticación, almacenamiento y controles físicos». Si aún está regresando, continúa la explicación sin esperar en silencio. |
@@ -31,6 +31,10 @@ npm run dev
 Abre la dirección indicada por Vite. Configura la misión antes de pulsar **Pantalla completa**; dentro del visor ampliado quedan los controles de bloqueo y PIN, no el formulario completo.
 
 ## Pruebas de la demo
+
+### Fachada e interior
+
+Al abrir o reiniciar la demo se ve el exterior del hospital. **Ver por dentro** desvanece la fachada y separa las plantas. **Fachada** vuelve a cerrar el edificio. El despacho abre el interior automáticamente para que el robot no quede oculto. Las vistas **3D**, **Plano** y **Seguir robot** conservan el interior visible.
 
 ### A. Entrega a Urgencias con desvío
 
@@ -64,6 +68,8 @@ La obstrucción se inserta en un tramo que aún no ha comenzado. El robot comple
 
 ![Centro de control con el modelo de cinco plantas](capturas-finales/centro-control.jpg)
 
+![Fachada ilustrativa del hospital recreado](capturas-finales/hospital-fachada.jpg)
+
 ![Edificio completo y recorrido del robot](capturas-finales/edificio.jpg)
 
 Las capturas de esta sección proceden del modelo final de Asael y del visor adaptado de Federico. No son renders de un robot físico.
@@ -90,4 +96,4 @@ El transporte de muestras, RFID y una integración clínica son propuestas futur
 
 ## Registro de revisión
 
-La verificación final combina el mapa de Asael (`e63972bcfd6870703e97c9fc9200ee3c07a43a06`), el visor adaptado de Federico y este PR de documentación en una rama temporal. El comentario final de revisión en [PR #2](https://github.com/federicorv25/medibot-cps/pull/2) registra los SHA exactos de los tres PR y el resultado de las pruebas. La integración a `main` se coordina en orden **#1 → #3 → #2** cuando los tres estén Ready.
+El modelo, el visor y la documentación se integraron en orden **#1 → #3 → #2**. La fachada exterior y su apertura están en [PR #4](https://github.com/federicorv25/medibot-cps/pull/4). Los comentarios de revisión registran los commit probados y la evidencia. La versión con fachada tiene 24 pruebas de mapa, representación exterior y simulación, además de lint, build y recorridos visibles en Chrome.

@@ -41,7 +41,9 @@ export default function App() {
   const [destination, setDestination] = useState<Destination>('emergency')
   const [kind, setKind] = useState<MissionKind>('delivery')
   const [quantities, setQuantities] = useState(initialQuantities)
-  const [camera, setCamera] = useState<CameraView>('orbit')
+  const [camera, setCamera] = useState<CameraView>('building')
+  const [facade, setFacade] = useState(true)
+  const facadeShown = camera === 'building' && facade
   const [floorOverride, setFloorOverride] = useState<string | null>(null)
   const [pin, setPin] = useState('')
   const [fullscreen, setFullscreen] = useState(false)
@@ -54,7 +56,9 @@ export default function App() {
     const tick = (now: number) => {
       const elapsed = now - timing.previous
       if (elapsed >= 30) {
-        dispatch({ type: 'tick', ms: Math.min(120, elapsed) })
+        // Mantener el tiempo real aunque el navegador reduzca cuadros al
+        // alternar a PowerPoint o activar el ahorro de energía.
+        dispatch({ type: 'tick', ms: elapsed })
         timing.previous = now
       }
       timing.frame = requestAnimationFrame(tick)
@@ -119,12 +123,15 @@ export default function App() {
     setQuantities(initialQuantities)
     setDestination('emergency')
     setKind('delivery')
-    setCamera('orbit')
+    setCamera('building')
+    setFacade(true)
     setFloorOverride(null)
     setPin('')
   }
   function start(requestedCargo: Cargo[], requestedDestination: Destination, requestedKind: MissionKind) {
     setPin(''); setFloorOverride(null)
+    // El recorrido debe verse: al despachar abrimos el hospital.
+    setFacade(false)
     setCamera('orbit')
     dispatch({ type: 'dispatch', cargo: requestedCargo, destination: requestedDestination, kind: requestedKind })
   }
@@ -196,6 +203,11 @@ export default function App() {
               <div className="segmented" role="group" aria-label="Cámara">
                 {views.map((view) => <button type="button" key={view.id} aria-pressed={camera === view.id} onClick={() => setCamera(view.id)}>{view.label}</button>)}
               </div>
+              <button className="facade-toggle" type="button" aria-pressed={facadeShown}
+                title={facadeShown ? 'Ocultar la fachada para ver el interior' : 'Ver el edificio con su fachada exterior'}
+                onClick={() => { if (camera !== 'building') { setCamera('building'); setFacade(true) } else setFacade(!facade) }}>
+                <Building2 size={16}/><span>{facadeShown ? 'Ver por dentro' : 'Fachada'}</span>
+              </button>
               <button className="fullscreen-toggle" type="button" onClick={() => void toggleFullscreen()}>
                 {isLarge ? <Minimize2 size={16}/> : <Maximize2 size={16}/>}
                 <span>{isLarge ? 'Salir de pantalla completa' : 'Pantalla completa'}</span>
@@ -203,7 +215,7 @@ export default function App() {
             </div>
           </header>
           <div className="map-body">
-            <HospitalScene net={net} mission={mission} view={camera} shownFloor={shownFloor} robotTask={taskLabel} robotCargo={trackingCargo}/>
+            <HospitalScene net={net} mission={mission} view={camera} shownFloor={shownFloor} robotTask={taskLabel} robotCargo={trackingCargo} facade={facade}/>
             <div className="floor-controls" role="group" aria-label="Planta del hospital">
               <span>NIVEL</span>
               {floors.map((floor) => <button type="button" key={floor.id} aria-pressed={camera !== 'building' && shownFloor === floor.id}
@@ -213,7 +225,7 @@ export default function App() {
                 }}>{floor.level === 0 ? 'PB' : String(floor.level).padStart(2,'0')}</button>)}
               {floorOverride && camera !== 'follow' && camera !== 'building' && <button type="button" onClick={() => setFloorOverride(null)}>Auto</button>}
             </div>
-            <div className="map-readout"><ArrowUpRight size={16}/> {camera === 'building' ? 'Edificio completo' : floorLabel(shownFloor)}</div>
+            <div className="map-readout"><ArrowUpRight size={16}/> {camera === 'building' ? (facade ? 'Edificio · fachada' : 'Edificio · interior') : floorLabel(shownFloor)}</div>
             <div className="robot-chip">
               <span className="robot-icon"><Box size={18}/></span>
               <div><b>MEDI-01</b><span>{floorLabel(currentFloor)} · {units} a bordo</span></div>
