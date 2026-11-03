@@ -1,3 +1,23 @@
-:root { font-family: system-ui, sans-serif; color: #102522; background: #f4f7f5; }
-body { margin: 0; }
-main { padding: 2rem; }
+:root {
+  font-family: "Segoe UI", Inter, system-ui, sans-serif;
+  color: #eaf4fa;
+  background: #080f1a;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 500;
+  color-scheme: dark;
+  --ink: #eaf4fa;
+  --muted: #9eb1c4;
+  --border: #283b50;
+  --card: #131f30;
+  --teal: #63e1c5;
+  --amber: #ffd08a;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .52; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #8cf5df; outline-offset: 3px; }
+button, select, input { -webkit-tap-highlight-color: transparent; }
+h1, h2, p { margin: 0; }
