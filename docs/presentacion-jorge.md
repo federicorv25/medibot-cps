@@ -1,6 +1,6 @@
 # MediBot CPS · Presentación GovHealth de TAJIX
 
-Guion y guía de uso de la demo integrada. El modelo representa un hospital recreado de cinco plantas y el catálogo solo contiene medicamentos ficticios.
+Guion y guía de uso de la demo integrada. El centro de control representa un hospital recreado de cinco plantas y el catálogo solo contiene medicamentos ficticios. La vista independiente del complejo incorpora tres torres con 13 plantas en total y un recorrido visual automático.
 
 ## Guion de tres minutos
 
@@ -19,7 +19,7 @@ Los tiempos son una pauta de presentación. El movimiento depende del navegador 
 
 ## Arranque reproducible
 
-Node.js 24 o superior. Acceso al repositorio privado. Chrome o Edge con WebGL 2.
+Node.js 24 o superior. El repositorio es público. Chrome o Edge con WebGL 2.
 
 ```sh
 git clone https://github.com/federicorv25/medibot-cps.git
@@ -29,6 +29,32 @@ npm run dev
 ```
 
 Abre la dirección indicada por Vite. Configura la misión antes de pulsar **Pantalla completa**; dentro del visor ampliado quedan los controles de bloqueo y PIN, no el formulario completo.
+
+## Complejo de tres torres y guion combinado
+
+Abre `complejo.html` desde **Complejo 3D · 3 torres** en otra pestaña. El complejo y el centro de control son dos demostraciones independientes: el recorrido del complejo es automático, mientras que el centro de control gestiona el catálogo ficticio, las cantidades, los bloqueos y el PIN. No se transfieren pedidos entre ambas vistas.
+
+Para mostrar ambas en tres minutos, usa el guion combinado de las notas del PowerPoint actualizado:
+
+| Tiempo | Qué mostrar |
+|---|---|
+| 0:00–0:35 | Portada, problema y utilidad de MediBot. |
+| 0:35–1:05 | Fachada del complejo, sus tres torres, **Iniciar recorrido** y velocidad **×4**. El inicio abre y separa las plantas automáticamente. Muestra el robot y la ruta verde. |
+| 1:05–2:10 | Cambia a la pestaña del centro de control y demuestra una entrega a **Urgencias · Planta baja**, Paracetamol ×4 y Solución salina ×2. Despacha, bloquea un pasillo para el desvío y confirma la recepción con **0426**. Explica el regreso vacío. |
+| 2:10–3:00 | Vuelve al PowerPoint para beneficios esperados, alcance, otros cargamentos posibles y el piloto con personal de salud. |
+
+El circuito de las tres torres visita las 13 plantas y regresa a la estación de la Torre Oeste. Durante el pitch basta mostrar una parte; el recorrido completo queda para las preguntas. Si una misión tarda más, continúa la explicación mientras avanza. La recogida en Internación y las cinco plantas siguen disponibles como demostración adicional.
+
+### Ensayo del complejo
+
+1. Deja **Todas** las torres seleccionadas y la fachada visible.
+2. Pulsa **Iniciar recorrido**, elige **×4** y observa el cambio de plantas.
+3. Pulsa **Pausa**, comprueba que permanece detenido y **Seguir** para reanudar.
+4. Observa el cruce del patio hacia la Torre Central y la Torre Este.
+5. Espera **Recorrido completado · MediBot en su estación**. El inicio vuelve a estar disponible.
+6. Para preparar el inicio del pitch, recarga solo esta pestaña y conserva la fachada visible, sin iniciar el recorrido.
+
+Para presentar sin recargas por cambios de código, construye con `npm run build` y usa `npm run preview -- --host 127.0.0.1 --port 5176 --strictPort`. Mantén esa terminal encendida y usa dos pestañas en el mismo servidor.
 
 ## Pruebas de la demo
 
