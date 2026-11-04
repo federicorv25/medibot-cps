@@ -62,6 +62,7 @@ Abre `http://127.0.0.1:5176/` y `http://127.0.0.1:5176/complejo.html`. Mantén e
 
 ## Evidencia y guion
 
+- [PowerPoint final de la presentación](docs/TAJIX-MediBot-CPS.pptx)
 - [Guion de tres minutos y pruebas paso a paso](docs/presentacion-jorge.md)
 - [Vista final del centro de control](docs/capturas-finales/centro-control.jpg)
 - [Edificio de cinco plantas](docs/capturas-finales/edificio.jpg)
