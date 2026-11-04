@@ -25,6 +25,8 @@
 .site-chip { display: flex; align-items: center; gap: 9px; border: 1px solid var(--border); padding: 8px 11px; border-radius: 10px; color: #b4d7eb; background: #15283b; white-space: nowrap; }
 .site-chip b, .site-chip small { display: block; font-size: 11px; }
 .site-chip small { color: var(--muted); margin-top: 2px; }
+.campus-link { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #3f7a72; padding: 9px 12px; border-radius: 10px; color: #aff9e9; background: #173a3e; font-size: 12px; font-weight: 720; text-decoration: none; white-space: nowrap; }
+.campus-link:hover { background: #1f4a4f; }
 .demo-start { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; min-height: 42px; border: 1px solid #4c877b; background: #214948; color: #bdf9e8; border-radius: 9px; font-size: 13px; font-weight: 750; white-space: nowrap; }
 .demo-start:hover { background: #2e615b; }
 .mission-strip { display: grid; grid-template-columns: minmax(205px, .92fr) minmax(230px,1.55fr) minmax(140px,.7fr); gap: 0; align-items: stretch; margin-bottom: 14px; background: linear-gradient(110deg,#173548,#13243a 49%,#172a3d); border: 1px solid #355169; border-radius: 13px; overflow: hidden; }

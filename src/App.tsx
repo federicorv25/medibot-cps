@@ -177,6 +177,7 @@ export default function App() {
           <p>Entrega y recogida de medicamentos con seguimiento dentro del hospital.</p></div>
         <div className="intro-actions">
           <div className="site-chip"><Building2 size={19}/><div><b>Caja Petrolera de Salud</b><small>Santa Cruz, Bolivia</small></div></div>
+          <a className="campus-link" href="./complejo.html"><Layers3 size={16}/> Complejo 3D · 3 torres</a>
           {!active && <button className="demo-start" type="button" onClick={startSample}><Play size={16} fill="currentColor"/> Probar recorrido · 5 plantas</button>}
         </div>
       </div>

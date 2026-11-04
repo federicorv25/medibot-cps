@@ -4,7 +4,7 @@ Simulación **GovHealth** de entrega y recogida de medicamentos dentro de un hos
 
 ## Ejecutar la demo
 
-Requiere Node.js 24 o superior y Chrome o Edge con WebGL 2. El repositorio es privado: necesitas una invitación aceptada para clonarlo.
+Requiere Node.js 24 o superior y Chrome o Edge con WebGL 2. El repositorio es público y se puede clonar sin invitación.
 
 ```sh
 git clone https://github.com/federicorv25/medibot-cps.git
@@ -35,6 +35,31 @@ Configura tipo de misión, destino y cantidades antes de entrar en pantalla comp
 | Piso 3 | Cuidados intensivos |
 | Piso 4 | Internación |
 
+## Complejo hospitalario 3D
+
+Desde el centro de control, **Complejo 3D · 3 torres** abre `complejo.html`: tres torres en U alrededor de un patio con jardín (Torre Oeste, Torre Central y Torre Este, 13 plantas en total).
+
+- Elige una o varias torres con los botones o con clic sobre el edificio (Ctrl/Shift + clic suma otra). Las demás quedan transparentes.
+- **Fachada exterior** muestra u oculta la piel de las torres elegidas; **Separar plantas** abre los pisos para ver las salas.
+- **Circuito de MediBot** marca en verde los pasillos, el ascensor y el camino del patio.
+- **Iniciar recorrido** hace que MediBot salga de su **Estación MediBot** (Torre Oeste, planta baja), recorra todas las plantas de las torres elegidas, entregue en la sala principal de cada piso y vuelva a la estación. Permite pausar, detener y elegir la velocidad.
+
+Es un complejo ficticio con fines ilustrativos; el simulador del centro de control sigue usando el mapa de cinco plantas.
+
+El complejo muestra un recorrido visual automático por las torres. Los medicamentos, las cantidades, los desvíos y el PIN `0426` se demuestran desde el **centro de control**. El pedido del centro de control no se transfiere a esta vista independiente.
+
+Para presentar, prepara dos pestañas: el centro de control y `complejo.html`. Muestra la fachada del complejo, inicia el recorrido y elige velocidad ×4. Puedes pausarlo para explicar las plantas y continuar después. El circuito completo visita 13 plantas y vuelve a la estación; no es necesario esperar todo el circuito durante el pitch.
+
+Para dejar una versión estable en la laptop de presentación:
+
+```sh
+npm ci
+npm run build
+npm run preview -- --host 127.0.0.1 --port 5176 --strictPort
+```
+
+Abre `http://127.0.0.1:5176/` y `http://127.0.0.1:5176/complejo.html`. Mantén el servidor encendido. Si el puerto está ocupado, elige otro puerto libre sin cerrar procesos ajenos.
+
 ## Evidencia y guion
 
 - [Guion de tres minutos y pruebas paso a paso](docs/presentacion-jorge.md)
@@ -58,8 +83,11 @@ La combinación final tiene 24 pruebas de mapa, fachada y simulación: acceso a 
 
 - **Asael:** modelo de cinco plantas y grafo transitable — [PR #1](https://github.com/federicorv25/medibot-cps/pull/1).
 - **Asael:** fachada exterior activable — [PR #4](https://github.com/federicorv25/medibot-cps/pull/4).
+- **Ruben Asael Rojas Mansilla:** complejo hospitalario de tres torres — [PR #5](https://github.com/federicorv25/medibot-cps/pull/5).
 - **Federico:** centro de control y simulación del robot — [PR #3](https://github.com/federicorv25/medibot-cps/pull/3).
 - **Jorge:** guion, documentación y guía de demostración — [PR #2](https://github.com/federicorv25/medibot-cps/pull/2).
+
+Integrantes del equipo: **Ruben Asael Rojas Mansilla**, **Jorge Luis Arteaga Cortez** y **Luis Federico Rojas Villarrubia**.
 
 ## Alcance del prototipo
 
